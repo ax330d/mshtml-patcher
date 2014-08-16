@@ -107,7 +107,7 @@ class MSHTMLPatcher(object):
         else:
             print "Some file is missing!"
             return False
-        print "done"
+        print "done."
         return True
 
     def test_env(self):
@@ -201,7 +201,7 @@ class MSHTMLPatcher(object):
         with open(self.path, 'r+b') as fh:
             fh.seek(index)
             fh.write(struct.pack('B', hb))
-        print "done"
+        print "done."
         print
         return
 

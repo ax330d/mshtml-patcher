@@ -50,18 +50,19 @@ This script will automatically find MSIE version, and path to mshtml.dll to
 patch. You can also specify them in arguments. Before patching, script creates 
 file backup named "original-mshtml.dll".
 
-*--patch-memset XX*
+######--patch-memset XX
 
 Will patch memset arguments for 
 MemoryProtection::CMemoryProtector::ProtectedFree so you can see some 
 recognizable pattern instead of zeroes. In place of XX put some hex value, I 
 prefer "ba" for example.
 
-*--patch-disable*
+######--patch-disable
 
 Disables Memory Protection feature. 
 
-Scripts supports Internet Explorer version 9, 10, 11, only 32 bit binaries. 
+
+Script supports Internet Explorer version 9, 10, 11, only 32 bit binaries. 
 Tested on Windows 7. 
 
 To use this script, you need to have rights to modify mshtml.dll.
