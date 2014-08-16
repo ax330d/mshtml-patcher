@@ -20,8 +20,8 @@ How to use it?
 Script is pretty simple in use, just run without arguments and help will pop up.
 
 ```
-C:\Users\Arthur\Documents\GitHub\mshtml-patch>mshtml-patcher.py
--------------------------------------------------------------------------------
+C:\Users\Arthur\Documents\GitHub\mshtml-patcher>mshtml-patcher.py
+--------------------------------------------------------------------------------
 mshtml.dll Memory Protection Feature Patcher
 (Tested on Windows 7 x32/x64, IE9 - IE11 x32 bit versions only)
 
@@ -35,14 +35,14 @@ usage: mshtml-patcher.py [-h] [--patch-memset XX] [--patch-disable]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --patch-memset XX     Patch memset
-  --patch-disable       Disable protection
-  --restore             Restore original file
+  --patch-memset XX     patch memset
+  --patch-disable       disable protection
+  --restore             restore original file
   --path-to-binary PATH
-                        Path to binary to patch
+                        path to binary to patch
   --path-to-original PATH
-                        Path to original binary
-  --msver {9,10,11}     IE version
+                        path to original binary
+  --msver {9,10,11}     major IE version
 
 ```
 

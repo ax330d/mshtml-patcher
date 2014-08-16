@@ -272,8 +272,8 @@ def main():
                              help="path to binary to patch")
     args_parser.add_argument("--path-to-original", metavar="PATH",
                              help="path to original binary")
-    args_parser.add_argument("--msver", help="major IE version", choices=[9, 10, 11],
-                             type=int)
+    args_parser.add_argument("--msver", help="major IE version",
+                             choices=[9, 10, 11], type=int)
 
     args = args_parser.parse_args()
     patcher = MSHTMLPatcher(args.path_to_binary, args.msver)
