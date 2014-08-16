@@ -262,17 +262,17 @@ def main():
 
     args_parser = argparse.ArgumentParser()
 
-    args_parser.add_argument("--patch-memset", help="Patch memset",
+    args_parser.add_argument("--patch-memset", help="patch memset",
                              metavar="XX")
-    args_parser.add_argument("--patch-disable", help="Disable protection",
+    args_parser.add_argument("--patch-disable", help="disable protection",
                              action='store_true')
-    args_parser.add_argument("--restore", help="Restore original file",
+    args_parser.add_argument("--restore", help="restore original file",
                              action='store_true')
     args_parser.add_argument("--path-to-binary", metavar="PATH",
-                             help="Path to binary to patch")
+                             help="path to binary to patch")
     args_parser.add_argument("--path-to-original", metavar="PATH",
-                             help="Path to original binary")
-    args_parser.add_argument("--msver", help="IE version", choices=[9, 10, 11],
+                             help="path to original binary")
+    args_parser.add_argument("--msver", help="major IE version", choices=[9, 10, 11],
                              type=int)
 
     args = args_parser.parse_args()
