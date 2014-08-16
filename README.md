@@ -10,7 +10,8 @@ ProtectedFree. However, this feature may be disturbing if you are doing fuzzing
 or debugging. This script patches mshtml.dll and optionally can either disable 
 protection or customize freed object pattern. Be aware that this script uses 
 some hardcoded pattern and may break your browser (unlikely), therefore, use it 
-at your own risk. 
+at your own risk. I also do not recommend to use Internet Explorer for browsing 
+after this path. And before this patch.
 
 
 How to use it?
@@ -60,6 +61,8 @@ Disables Memory Protection feature.
 
 Scripts supports Internet Explorer version 9, 10, 11, only 32 bit binaries. 
 Tested on Windows 7. 
+
+To use this script, you need to have rights to modify mshtml.dll.
 
 
 Example
