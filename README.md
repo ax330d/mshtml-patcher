@@ -11,7 +11,7 @@ or debugging. This script patches mshtml.dll and optionally can either disable
 protection or customize freed memory pattern. Be aware that this script uses 
 some hardcoded values and may break your browser (unlikely), therefore, use it 
 at your own risk. I also do not recommend to use Internet Explorer for browsing 
-after this patch. And before this patch.
+after this patch. (And before this patch.)
 
 
 How to use it?
@@ -58,7 +58,6 @@ prefer "ba" for example.
 
 ######--patch-disable
 Disables Memory Protection feature. 
-
 
 Script supports Internet Explorer version 9, 10, 11, only 32 bit binaries. 
 Tested on Windows 7. 
