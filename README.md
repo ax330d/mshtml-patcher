@@ -8,8 +8,8 @@ What for?
 Recently MS introduced new mitigations in Internet Explorer, one of them is 
 ProtectedFree. However, this feature may be disturbing if you are doing fuzzing 
 or debugging. This script patches mshtml.dll and optionally can either disable 
-protection or customize freed object pattern. Be aware that this script uses 
-some hardcoded pattern and may break your browser (unlikely), therefore, use it 
+protection or customize freed memory pattern. Be aware that this script uses 
+some hardcoded values and may break your browser (unlikely), therefore, use it 
 at your own risk. I also do not recommend to use Internet Explorer for browsing 
 after this path. And before this patch.
 
