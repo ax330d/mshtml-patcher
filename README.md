@@ -11,7 +11,7 @@ or debugging. This script patches mshtml.dll and optionally can either disable
 protection or customize freed memory pattern. Be aware that this script uses 
 some hardcoded values and may break your browser (unlikely), therefore, use it 
 at your own risk. I also do not recommend to use Internet Explorer for browsing 
-after this path. And before this patch.
+after this patch. And before this patch.
 
 
 How to use it?
