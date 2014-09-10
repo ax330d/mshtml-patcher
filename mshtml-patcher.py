@@ -6,8 +6,12 @@
 #
 # This is solely for debugging purpose.
 #
-# by @ax330d, 15-08-2014, v. 0.1.
+# by @ax330d
 #
+# v 0.1     15-08-2014
+# v 0.1.2   10-09-2014
+
+__version__ = '0.1.2'
 
 import argparse
 import os
@@ -15,6 +19,7 @@ import struct
 import shutil
 import struct
 import platform
+import hashlib
 
 
 class AttributeDict(dict):
@@ -26,11 +31,23 @@ class AttributeDict(dict):
         self[attr] = value
 
 
-class MSHTMLPatcher(object):
-    def __init__(self, binary_path, msver):
+def md5(path):
+    with open(path, 'rb') as fh:
+        m = hashlib.md5()
+        while True:
+            data = fh.read(8192)
+            if not data:
+                break
+            m.update(data)
+        return m.hexdigest()
 
-        self.path = binary_path
-        self.msver = msver
+
+class MSHTMLPatcher(object):
+    def __init__(self, binary_path, msver, md5_hash):
+
+        self._path = binary_path
+        self._msver = msver
+        self._md5_hash = md5_hash
         self._PATTERN_00 = ''
         self._PATTERN_02 = ''
         self._PATTERN_03 = ''
@@ -101,9 +118,9 @@ class MSHTMLPatcher(object):
     def restore(self, original):
         """Restore original file."""
 
-        if os.path.isfile(self.path) and os.path.isfile(original):
-            print "Copying from {} to {}...".format(original, self.path),
-            shutil.copy2(original, self.path)
+        if os.path.isfile(self._path) and os.path.isfile(original):
+            print "Copying from {} to {}...".format(original, self._path),
+            shutil.copy2(original, self._path)
         else:
             print "Some file is missing!"
             return False
@@ -115,23 +132,50 @@ class MSHTMLPatcher(object):
 
         patterns = {}
         # Patterns for IE9
-        patterns[9] = AttributeDict()
-        patterns[9].P00 = "\x6a\x00\x57\xe8\x41\x4d\x95\xff"
-        patterns[9].P02 = "\x6a\x02\xeb\x06\x8b\x4d\x10\x51"
-        patterns[9].P03 = "\x6a\x03\x56\xe8\x9e\x38\x62\x00"
-        # Patterns for IE10
-        patterns[10] = AttributeDict()
-        patterns[10].P00 = "\x6a\x00\x56\xe8\x53\xb4\x4d\xff"
-        patterns[10].P02 = "\x6a\x02\x58\xe8\x06\xf1\x55\x00"
-        patterns[10].P03 = "\x6a\x03\xeb\x05\xff\x75\x10\x6a"
-        # Patterns for IE11
-        patterns[11] = AttributeDict()
-        patterns[11].P00 = "\x6a\x00\x57\xc6\x46\x10\x00\xe8" \
-                           "\x87\x6d\x8b\xff\x83\xc4\x0c\x5e"
-        patterns[11].P02 = "\xba\x02\x00\x00\x00\xeb\x05\xba"
-        patterns[11].P03 = "\xba\x03\x00\x00\x00\xff\x75\x10"
+        patterns[9] = {}
+        md5hash = 'befe2a3b0fd950e895a623df4238247e'
+        patterns[9][md5hash] = AttributeDict()
+        patterns[9][md5hash].P00 = "\x6a\x00\x57\xe8\x41\x4d\x95\xff"
+        patterns[9][md5hash].P02 = "\x6a\x02\xeb\x06\x8b\x4d\x10\x51"
+        patterns[9][md5hash].P03 = "\x6a\x03\x56\xe8\x9e\x38\x62\x00"
+        # IE9, update of 09-09-2014
+        md5hash = 'b7e3af84d1cf6caa39ea69ef2734b517'
+        patterns[9][md5hash] = AttributeDict()
+        patterns[9][md5hash].P00 = "\x6a\x00\x57\xe8\xdd\x25\x95\xff"
+        patterns[9][md5hash].P02 = "\x6a\x02\xeb\x06\x8b\x4d\x10\x51"
+        patterns[9][md5hash].P03 = "\x6a\x03\x56\xe8\x09\x60\x62\x00"
 
-        name, domain, version, release, ptype, etc = platform.uname()
+        # Patterns for IE10
+        patterns[10] = {}
+        md5hash = '59519c658518aa899b76aeefa7719112'
+        patterns[10][md5hash] = AttributeDict()
+        patterns[10][md5hash].P00 = "\x6a\x00\x56\xe8\x53\xb4\x4d\xff"
+        patterns[10][md5hash].P02 = "\x6a\x02\x58\xe8\x06\xf1\x55\x00"
+        patterns[10][md5hash].P03 = "\x6a\x03\xeb\x05\xff\x75\x10\x6a"
+        # IE10, update of 09-09-2014
+        md5hash = '9004d71ad5841653cc67f48b7428ec7d'
+        patterns[10][md5hash] = AttributeDict()
+        patterns[10][md5hash].P00 = "\x6a\x00\x56\xe8\xbe\x46\x4d\xff"
+        patterns[10][md5hash].P02 = "\x6a\x02\x58\xe8\x08\x76\x56\x00"
+        patterns[10][md5hash].P03 = "\x6a\x03\xeb\x05\xff\x75\x10\x6a"
+
+        # Patterns for IE11
+        patterns[11] = {}
+        md5hash = '8453ddf167ce2986aa4ab04bc6824925'
+        patterns[11][md5hash] = AttributeDict()
+        patterns[11][md5hash].P00 = "\x6a\x00\x57\xc6\x46\x10\x00\xe8" \
+                                    "\x87\x6d\x8b\xff\x83\xc4\x0c\x5e"
+        patterns[11][md5hash].P02 = "\xba\x02\x00\x00\x00\xeb\x05\xba"
+        patterns[11][md5hash].P03 = "\xba\x03\x00\x00\x00\xff\x75\x10"
+        # IE11, update of 09-09-2014
+        md5hash = '7bf1ce9240cb9dd27c3e30733176eb8e'
+        patterns[11][md5hash] = AttributeDict()
+        patterns[11][md5hash].P00 = "\x6a\x00\x57\xe8\x3b\xfb\x8a\xff" \
+                                    "\x83\xc4\x0c\x5e\x5f\x5b\x8b\xe5"
+        patterns[11][md5hash].P02 = "\xba\x02\x00\x00\x00\xeb\x05\xba"
+        patterns[11][md5hash].P03 = "\xba\x03\x00\x00\x00\xff\x75\x10"
+
+        name, _, version, _, ptype, _ = platform.uname()
 
         if name != 'Windows':
             print "Not supported OS!"
@@ -142,42 +186,58 @@ class MSHTMLPatcher(object):
 
         if ptype == 'AMD64':
             path_x86 = "C:\Windows\SysWOW64\mshtml.dll"
-            path_x64 = "C:\Windows\System32\mshtml.dll"
+            # path_x64 = "C:\Windows\System32\mshtml.dll"
             ins = "C:\Program Files (x86)\Internet Explorer\SIGNUP\install.ins"
         elif ptype == 'x86':
             path_x86 = "C:\Windows\System32\mshtml.dll"
-            path_x64 = None
+            # path_x64 = None
             ins = "C:\Program Files\Internet Explorer\SIGNUP\install.ins"
         else:
             print "WARNING: Unsupported processor type!"
 
-        if not self.msver:
+        if not self._msver:
             with open(ins, 'r') as fh:
                 lines = fh.readlines()
-                n, v = lines[3].split('=')
+                _, v = lines[3].split('=')
                 mv = v.split(',')[0].replace('\x00', '')
-            self.msver = int(mv)
+            self._msver = int(mv)
 
-        if self.msver < 9 or self.msver > 11:
-            print "WARNING: Unsupported MSIE version!"
-
-        self._PATTERN_00 = patterns[self.msver].P00
-        self._PATTERN_02 = patterns[self.msver].P02
-        self._PATTERN_03 = patterns[self.msver].P03
+        orig_file_path = "{}\\original-mshtml.dll".format(
+            (os.path.dirname(os.path.abspath(__file__))))
+        if not os.path.isfile(orig_file_path):
+            x86_md5hash = md5(path_x86)
+        else:
+            x86_md5hash = md5(orig_file_path)
 
         print "OS Version: Windows", version
         print "Path to mshtml.dll:", path_x86
-        print "MSIE version:", self.msver
+        print "MSIE version:", self._msver
+        print "mshtml.dll md5 hash:", x86_md5hash
         print
-        if not self.path:
-            self.path = path_x86
+
+        if self._msver < 9 or self._msver > 11:
+            print "WARNING: Unsupported MSIE version!"
+
+        if self._md5_hash:
+            x86_md5hash = self._md5_hash
+
+        if x86_md5hash not in patterns[self._msver]:
+            print "ERROR: Tested pattern is missing for this binary hash!"
+            return False
+
+        self._PATTERN_00 = patterns[self._msver][x86_md5hash].P00
+        self._PATTERN_02 = patterns[self._msver][x86_md5hash].P02
+        self._PATTERN_03 = patterns[self._msver][x86_md5hash].P03
+
+        if not self._path:
+            self._path = path_x86
 
         return True
 
     def _hex_dump(self, offset):
         """Hex dump for files."""
 
-        with file(self.path, 'rb') as fh:
+        with file(self._path, 'rb') as fh:
             fh.seek(offset - 0x10)
             block = fh.read(0x30)
             i = 0
@@ -198,7 +258,7 @@ class MSHTMLPatcher(object):
         print
         print "Patching mshtml.dll with 0x{:02x}...".format(hb),
 
-        with open(self.path, 'r+b') as fh:
+        with open(self._path, 'r+b') as fh:
             fh.seek(index)
             fh.write(struct.pack('B', hb))
         print "done."
@@ -210,24 +270,24 @@ class MSHTMLPatcher(object):
            reverts to original file to avoid collision with other patches."""
 
         print
-        new_name = "%s\\original-mshtml.dll" % \
-            (os.path.dirname(os.path.abspath(__file__)))
+        new_name = "{}\\original-mshtml.dll".format(
+            (os.path.dirname(os.path.abspath(__file__))))
         if not os.path.isfile(new_name):
             print "Backing up original file...",
-            shutil.copy2(self.path, new_name)
+            shutil.copy2(self._path, new_name)
             print "{}".format(new_name)
             print "done."
         else:
             print "Restoring original file before patching...",
             # Rever to original file to patch it
-            shutil.copy2(new_name, self.path)
+            shutil.copy2(new_name, self._path)
             print "done."
         return
 
     def _find_offset(self, pattern):
         """Find offset for some pattern in binary."""
 
-        with open(self.path, 'rb') as f:
+        with open(self._path, 'rb') as f:
             code = f.read()
 
         index = code.find(pattern)
@@ -256,27 +316,29 @@ def print_warning():
 def main():
 
     print "-" * 80
-    print "mshtml.dll Memory Protection Feature Patcher"
+    print "mshtml.dll Memory Protection Feature Patcher,",
+    print "v.{}".format(__version__)
     print "(Tested on Windows 7 x32/x64, IE9 - IE11 x32 bit versions only)"
     print
 
     args_parser = argparse.ArgumentParser()
-
-    args_parser.add_argument("--patch-memset", help="patch memset",
-                             metavar="XX")
-    args_parser.add_argument("--patch-disable", help="disable protection",
-                             action='store_true')
-    args_parser.add_argument("--restore", help="restore original file",
-                             action='store_true')
+    group = args_parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--patch-memset", help="patch memset", metavar="XX")
+    group.add_argument("--patch-disable", help="disable protection",
+                       action='store_true')
+    group.add_argument("--restore", help="restore original file",
+                       action='store_true')
     args_parser.add_argument("--path-to-binary", metavar="PATH",
                              help="path to binary to patch")
     args_parser.add_argument("--path-to-original", metavar="PATH",
                              help="path to original binary")
     args_parser.add_argument("--msver", help="major IE version",
                              choices=[9, 10, 11], type=int)
+    args_parser.add_argument("--md5-hash", help="use provided md5 file hash")
 
     args = args_parser.parse_args()
-    patcher = MSHTMLPatcher(args.path_to_binary, args.msver)
+    patcher = MSHTMLPatcher(args.path_to_binary, args.msver,
+                            args.md5_hash)
     if not patcher.test_env():
         return
 
@@ -285,8 +347,8 @@ def main():
     elif args.patch_disable:
         patcher.patch_disable()
     elif args.restore:
-        assumed_path = "%s\\original-mshtml.dll" % \
-            (os.path.dirname(os.path.abspath(__file__)))
+        assumed_path = "{}\\original-mshtml.dll".format(
+            (os.path.dirname(os.path.abspath(__file__))))
         if not os.path.isfile(assumed_path):
             if not args.path_to_original:
                 print "Unable to find path to original file!"
