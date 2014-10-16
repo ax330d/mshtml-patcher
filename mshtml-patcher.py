@@ -11,11 +11,13 @@
 # v 0.1     15-08-2014
 # v 0.1.2   10-09-2014
 # v 0.1.3   15-10-2014
+# v 0.1.4   16-10-2014
 
-__version__ = '0.1.3'
+__version__ = '0.1.4'
 
 import argparse
 import os
+import re
 import struct
 import shutil
 import struct
@@ -211,8 +213,8 @@ class MSHTMLPatcher(object):
         # IE11, update of 14-10-2014
         md5hash = 'f91e55da404b834648a3b0a2477c10db'
         patterns[11][md5hash] = AttributeDict()
-        patterns[11][md5hash].P00 = "\x6a\x00\x57\xe8\x3b\xfb\x8a\xff" \
-                                    "\x83\xc4\x0c\x5e\x5f\x5b\x8b\xe5"
+        patterns[11][md5hash].P00 = "\x6a\x00\x57\xe8\x39\x64\x8b\xff" \
+                                    "\x83\xc4\x0c\x5f\x5e\x5b\x8b\xe5"
         patterns[11][md5hash].P02 = "\xba\x02\x00\x00\x00\xeb\x05\xba"
         patterns[11][md5hash].P03 = "\xba\x03\x00\x00\x00\xff\x75\x10"
 
@@ -233,24 +235,32 @@ class MSHTMLPatcher(object):
             print "WARNING: Unsupported processor type ({})!".format(ptype)
             return False
 
+        dll_version = None
         if not self._msver:
-            self._msver, _, _, _ = self._get_dll_version(path_x86)
+            dll_version = self._get_dll_version(path_x86)
+            if dll_version:
+                self._msver, _, _, _ = dll_version
+            else:
+                self._msver = -1
 
-        orig_file_path = "{}\\original-mshtml.dll".format(
-            (os.path.dirname(os.path.abspath(__file__))))
-        if not os.path.isfile(orig_file_path):
-            x86_md5hash = md5(path_x86)
-        else:
-            x86_md5hash = md5(orig_file_path)
+        x86_md5hash = md5(path_x86)
 
         print "OS Version: Windows", version
         print "Path to mshtml.dll:", path_x86
-        print "MSIE version:", self._msver
         print "mshtml.dll md5 hash:", x86_md5hash
+        print "            version:", dll_version
+        orig_file_path = "{}\\original-mshtml.dll".format(
+            (os.path.dirname(os.path.abspath(__file__))))
+        if os.path.isfile(orig_file_path):
+            x86_md5hash = md5(orig_file_path)
+            print "original-mshtml.dll md5 hash:", x86_md5hash
+            print "                     version:",
+            print self._get_dll_version(orig_file_path)
         print
 
         if self._msver < 9 or self._msver > 11:
-            print "WARNING: Unsupported MSIE version!"
+            print "ERROR: Unsupported MSIE version!"
+            return False
 
         if self._md5_hash:
             x86_md5hash = self._md5_hash
@@ -305,18 +315,18 @@ class MSHTMLPatcher(object):
 
     def _test_file(self):
         """If file backup does not exists, creates one. If we are patching,
-           reverts to original file to avoid collision with other patches."""
+           reverts to original file to avoid collision with previous patch."""
 
         print
-        new_name = "{}\\original-mshtml.dll".format(
+        orig_dll = "{}\\original-mshtml.dll".format(
             (os.path.dirname(os.path.abspath(__file__))))
-        if not os.path.isfile(new_name):
+        if not os.path.isfile(orig_dll):
             print "Backing up original file...",
-            shutil.copy2(self._path, new_name)
-            print "{}".format(new_name)
+            shutil.copy2(self._path, orig_dll)
+            print "({})".format(orig_dll),
             print "done."
         else:
-            if not self.restore(new_name):
+            if not self.restore(orig_dll):
                 return False
         return True
 
@@ -340,27 +350,25 @@ class MSHTMLPatcher(object):
     def _get_dll_version(self, file):
         """Try to get DLL version."""
 
-        # First try with win32api
-        try:
-            import win32api
-            info = win32api.GetFileVersionInfo(file, "\\")
-            ms = info['FileVersionMS']
-            ls = info['FileVersionLS']
-            return (win32api.HIWORD(ms), win32api.LOWORD(ms),
-                    win32api.HIWORD(ls), win32api.LOWORD(ls))
-        except:
-            pass
+        fh = open(file, 'rb')
+        data = fh.read().replace('\x00', '')
+        fh.close()
 
-        # Second try with pefile module
-        try:
-            import pefile
-            pe = pefile.PE(file)
-            ms = pe.VS_FIXEDFILEINFO.ProductVersionMS
-            ls = pe.VS_FIXEDFILEINFO.ProductVersionLS
-            return (ms >> 16, ms & 0x0000ffff,
-                    ls >> 16, ls & 0x0000ffff)
-        except:
-            pass
+        offset_str = data.rfind('StringFileInfo')
+        if offset_str == -1:
+            return False
+
+        offset_var = data.rfind('VarFileInfo')
+        if offset_var == -1:
+            offset_var = offset_str + 512
+
+        info = re.findall("FileVersion(.+?)\x01", data[offset_str:offset_var])
+        if not len(info):
+            return False
+
+        m = re.match('(\d+\.\d+\.\d+\.\d+) (?:.*?)', info[0][:-2])
+        if m:
+            return map(int, m.group(1).split('.'))
         return False
 
 
