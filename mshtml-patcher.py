@@ -1,8 +1,8 @@
 #
 # mshtml.dll patcher script
 #
-# Patches mshtml.dll library to disable Protected Memory feature, or use some
-# pattern for memset after memory was freed.
+# Patches mshtml.dll to disable Protected Memory feature, or use some pattern
+# for memset after memory was freed.
 #
 # This is solely for debugging purpose.
 #
@@ -12,8 +12,9 @@
 # v 0.1.2   10-09-2014
 # v 0.1.3   15-10-2014
 # v 0.1.4   16-10-2014
+# v 0.1.5   30-10-2014
 
-__version__ = '0.1.4'
+__version__ = '0.1.5'
 
 import argparse
 import os
@@ -47,14 +48,17 @@ def md5(path):
 
 
 class MSHTMLPatcher(object):
-    def __init__(self, binary_path, msver, md5_hash):
+    def __init__(self, path_to_dll_default, path_to_dll_saved, msver,
+                 md5_hash):
 
-        self._path = binary_path
+        self._path_to_dll_default = path_to_dll_default
+        self._path_to_dll_saved = path_to_dll_saved
         self._msver = msver
         self._md5_hash = md5_hash
         self._PATTERN_00 = ''
         self._PATTERN_02 = ''
         self._PATTERN_03 = ''
+        self._saved_dll_name = 'original-mshtml.dll'
 
     def patch_disable(self):
         """Will patch pushes/movs for MemoryProtection::DllNotification."""
@@ -121,10 +125,10 @@ class MSHTMLPatcher(object):
 
         return True
 
-    def _version_match(self, original, current):
+    def _version_match(self, saved, current):
         """Check if file version matches."""
 
-        orig_dll_version = self._get_dll_version(original)
+        orig_dll_version = self._get_dll_version(saved)
         new_dll_version = self._get_dll_version(current)
         if orig_dll_version and new_dll_version:
             if orig_dll_version[2] != new_dll_version[2] and \
@@ -134,24 +138,38 @@ class MSHTMLPatcher(object):
                 return False
         return True
 
-    def restore(self, original):
-        """Restore original file."""
+    def restore(self, path_to_dll_saved=None):
+        """Restore original (saved) file."""
 
-        if not self._version_match(original, self._path):
+        if not path_to_dll_saved:
+            path_to_dll_saved = "{}\\{}".format(
+                (os.path.dirname(os.path.abspath(__file__))),
+                self._saved_dll_name)
+        if self._path_to_dll_saved:
+            path_to_dll_saved = self._path_to_dll_saved
+        if not os.path.isfile(path_to_dll_saved):
+            if not self._path_to_dll_saved:
+                print "ERROR: Unable to find path to original (saved) file!"
+                return False
+
+        if not self._version_match(path_to_dll_saved,
+                                   self._path_to_dll_default):
             return False
 
         print "Restoring original file...",
 
-        if os.path.isfile(self._path) and os.path.isfile(original):
-            print "(copying from {} to {})".format(original, self._path),
-            shutil.copy2(original, self._path)
+        if os.path.isfile(self._path_to_dll_default) and \
+           os.path.isfile(path_to_dll_saved):
+            print "(copying from {} to {})".format(path_to_dll_saved,
+                                                   self._path_to_dll_default),
+            shutil.copy2(path_to_dll_saved, self._path_to_dll_default)
         else:
             print "Some file is missing!"
             return False
         print "done."
         return True
 
-    def test_env(self):
+    def test_env(self, print_info=False):
         """Check OS, IE version, file access."""
 
         patterns = {}
@@ -199,8 +217,8 @@ class MSHTMLPatcher(object):
         patterns[11] = {}
         md5hash = '8453ddf167ce2986aa4ab04bc6824925'
         patterns[11][md5hash] = AttributeDict()
-        patterns[11][md5hash].P00 = "\x6a\x00\x57\xe8\x39\x64\x8b\xff" \
-                                    "\x83\xc4\x0c\x5f\x5e\x5b\x8b\xe5"
+        patterns[11][md5hash].P00 = "\x6a\x00\x57\xc6\x46\x10\x00\xe8" \
+                                    "\x87\x6d\x8b\xff\x83\xc4\x0c\x5e"
         patterns[11][md5hash].P02 = "\xba\x02\x00\x00\x00\xeb\x05\xba"
         patterns[11][md5hash].P03 = "\xba\x03\x00\x00\x00\xff\x75\x10"
         # IE11, update of 09-09-2014
@@ -247,15 +265,21 @@ class MSHTMLPatcher(object):
 
         print "OS Version: Windows", version
         print "Path to mshtml.dll:", path_x86
-        print "mshtml.dll md5 hash:", x86_md5hash
-        print "            version:", dll_version
-        orig_file_path = "{}\\original-mshtml.dll".format(
-            (os.path.dirname(os.path.abspath(__file__))))
-        if os.path.isfile(orig_file_path):
-            x86_md5hash = md5(orig_file_path)
-            print "original-mshtml.dll md5 hash:", x86_md5hash
-            print "                     version:",
-            print self._get_dll_version(orig_file_path)
+        print "          md5 hash:", x86_md5hash
+        print "           version:", dll_version
+        print
+        path_to_dll_saved = "{}\\{}".format(
+            (os.path.dirname(os.path.abspath(__file__))),
+            self._saved_dll_name)
+        if self._path_to_dll_saved:
+            path_to_dll_saved = self._path_to_dll_saved
+
+        if os.path.isfile(path_to_dll_saved):
+            print "Path to {}:".format(self._saved_dll_name), path_to_dll_saved
+            x86_md5hash = md5(path_to_dll_saved)
+            print "                   md5 hash:", x86_md5hash
+            print "                    version:",
+            print self._get_dll_version(path_to_dll_saved)
         print
 
         if self._msver < 9 or self._msver > 11:
@@ -273,11 +297,10 @@ class MSHTMLPatcher(object):
         self._PATTERN_02 = patterns[self._msver][x86_md5hash].P02
         self._PATTERN_03 = patterns[self._msver][x86_md5hash].P03
 
-        if not self._path:
-            self._path = path_x86
+        if not self._path_to_dll_default:
+            self._path_to_dll_default = path_x86
 
-        if not os.access(path_x86, os.W_OK):
-            print "ERROR: File seems to be not writable!"
+        if print_info:
             return False
 
         return True
@@ -285,7 +308,7 @@ class MSHTMLPatcher(object):
     def _hex_dump(self, offset):
         """Hex dump for files."""
 
-        with file(self._path, 'rb') as fh:
+        with file(self._path_to_dll_default, 'rb') as fh:
             fh.seek(offset - 0x10)
             block = fh.read(0x30)
             i = 0
@@ -306,7 +329,7 @@ class MSHTMLPatcher(object):
         print
         print "Patching mshtml.dll with 0x{:02x}...".format(hb),
 
-        with open(self._path, 'r+b') as fh:
+        with open(self._path_to_dll_default, 'r+b') as fh:
             fh.seek(index)
             fh.write(struct.pack('B', hb))
         print "done."
@@ -318,22 +341,26 @@ class MSHTMLPatcher(object):
            reverts to original file to avoid collision with previous patch."""
 
         print
-        orig_dll = "{}\\original-mshtml.dll".format(
-            (os.path.dirname(os.path.abspath(__file__))))
-        if not os.path.isfile(orig_dll):
+        if not self._path_to_dll_saved:
+            path_to_dll_saved = "{}\\{}".format(
+                (os.path.dirname(os.path.abspath(__file__))),
+                self._saved_dll_name)
+        else:
+            path_to_dll_saved = self._path_to_dll_saved
+        if not os.path.isfile(path_to_dll_saved):
             print "Backing up original file...",
-            shutil.copy2(self._path, orig_dll)
-            print "({})".format(orig_dll),
+            shutil.copy2(self._path_to_dll_default, path_to_dll_saved)
+            print "({})".format(path_to_dll_saved),
             print "done."
         else:
-            if not self.restore(orig_dll):
+            if not self.restore(path_to_dll_saved):
                 return False
         return True
 
     def _find_offset(self, pattern):
         """Find offset for some pattern in binary."""
 
-        with open(self._path, 'rb') as f:
+        with open(self._path_to_dll_default, 'rb') as f:
             bin = f.read()
 
         index = bin.find(pattern)
@@ -366,7 +393,7 @@ class MSHTMLPatcher(object):
         if not len(info):
             return False
 
-        m = re.match('(\d+\.\d+\.\d+\.\d+) (?:.*?)', info[0][:-2])
+        m = re.match(r'(\d+\.\d+\.\d+\.\d+) (?:.*?)', info[0][:-2])
         if m:
             return map(int, m.group(1).split('.'))
         return False
@@ -398,18 +425,20 @@ def main():
                        action='store_true')
     group.add_argument("--restore", help="restore original file",
                        action='store_true')
-    args_parser.add_argument("--path-to-binary", metavar="PATH",
-                             help="path to binary to patch")
-    args_parser.add_argument("--path-to-original", metavar="PATH",
-                             help="path to original binary")
-    args_parser.add_argument("--msver", help="major IE version",
+    group.add_argument("--print-info", help="only print information",
+                       action='store_true')
+    args_parser.add_argument("--path-to-dll-default", metavar="PATH",
+                             help="override path to binary to patch")
+    args_parser.add_argument("--path-to-dll-saved", metavar="PATH",
+                             help="override path to original binary")
+    args_parser.add_argument("--msver", help="override major IE version",
                              choices=[9, 10, 11], type=int)
-    args_parser.add_argument("--md5-hash", help="use provided md5 file hash")
+    args_parser.add_argument("--md5-hash", help="override md5 file hash")
 
     args = args_parser.parse_args()
-    patcher = MSHTMLPatcher(args.path_to_binary, args.msver,
-                            args.md5_hash)
-    if not patcher.test_env():
+    patcher = MSHTMLPatcher(args.path_to_dll_default, args.path_to_dll_saved,
+                            args.msver, args.md5_hash)
+    if not patcher.test_env(args.print_info):
         return
 
     if args.patch_memset:
@@ -417,18 +446,7 @@ def main():
     elif args.patch_disable:
         patcher.patch_disable()
     elif args.restore:
-        assumed_path = "{}\\original-mshtml.dll".format(
-            (os.path.dirname(os.path.abspath(__file__))))
-        if not os.path.isfile(assumed_path):
-            if not args.path_to_original:
-                print "Unable to find path to original file!"
-                args_parser.print_help()
-                return
-            else:
-                path = args.path_to_original
-        else:
-            path = assumed_path
-        patcher.restore(path)
+        patcher.restore()
     else:
         args_parser.print_help()
     return
