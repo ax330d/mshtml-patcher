@@ -13,8 +13,9 @@
 # v 0.1.3   15-10-2014
 # v 0.1.4   16-10-2014
 # v 0.1.5   30-10-2014
+# v 0.1.6   12-11-2014
 
-__version__ = '0.1.5'
+__version__ = '0.1.6'
 
 import argparse
 import os
@@ -192,6 +193,12 @@ class MSHTMLPatcher(object):
         patterns[9][md5hash].P00 = "\x6a\x00\x57\xe8\x5d\x22\x95\xff"
         patterns[9][md5hash].P02 = "\x6a\x02\xeb\x06\x8b\x45\x10\x50"
         patterns[9][md5hash].P03 = "\x6a\x03\x56\xe8\xdc\x63\x62\x00"
+        # IE9, update of 11-11-2014
+        md5hash = '5bdcc7129c2f0a25f8a8ff6a3bdd9896'
+        patterns[9][md5hash] = AttributeDict()
+        patterns[9][md5hash].P00 = "\x6a\x00\x57\xe8\x35\x19\x95\xff"
+        patterns[9][md5hash].P02 = "\x6a\x02\xeb\x06\x8b\x45\x10\x50"
+        patterns[9][md5hash].P03 = "\x6a\x03\x56\xe8\x30\x6c\x62\x00"
 
         # Patterns for IE10
         patterns[10] = {}
@@ -211,6 +218,12 @@ class MSHTMLPatcher(object):
         patterns[10][md5hash] = AttributeDict()
         patterns[10][md5hash].P00 = "\x6a\x00\x56\xe8\x79\x16\x4d\xff"
         patterns[10][md5hash].P02 = "\x6a\x02\x58\xe8\xe6\x9a\x56\x00"
+        patterns[10][md5hash].P03 = "\x6a\x03\xeb\x05\xff\x75\x10\x6a"
+        # IE10, update of 11-11-2014
+        md5hash = '9e693725f153cd9ef08e90d58ebebc54'
+        patterns[10][md5hash] = AttributeDict()
+        patterns[10][md5hash].P00 = "\x6a\x00\x56\xe8\xa9\xe7\x4c\xff"
+        patterns[10][md5hash].P02 = "\x6a\x02\x58\xe8\xe1\xde\x56\x00"
         patterns[10][md5hash].P03 = "\x6a\x03\xeb\x05\xff\x75\x10\x6a"
 
         # Patterns for IE11
@@ -235,6 +248,13 @@ class MSHTMLPatcher(object):
                                     "\x83\xc4\x0c\x5f\x5e\x5b\x8b\xe5"
         patterns[11][md5hash].P02 = "\xba\x02\x00\x00\x00\xeb\x05\xba"
         patterns[11][md5hash].P03 = "\xba\x03\x00\x00\x00\xff\x75\x10"
+        # IE11, update of 11-11-2014
+        md5hash = '93074c4fa92a8399404d032f6af72c1b'
+        patterns[11][md5hash] = AttributeDict()
+        patterns[11][md5hash].P00 = "\x6a\x00\x57\xe8\x19\x8c\xfd\xff" \
+                                    "\x83\xc4\x0c\x5e\x5f\x5b\x8b\xe5"
+        patterns[11][md5hash].P02 = "\xba\x02\x00\x00\x00\xff\x75\x10"
+        patterns[11][md5hash].P03 = "\xba\x03\x00\x00\x00\xe9\xd8\xfe"
 
         name, _, version, _, ptype, _ = platform.uname()
 
