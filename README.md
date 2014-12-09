@@ -19,7 +19,7 @@ Script is pretty simple in use, accepts following aguments:
 ```
 C:\Users\debug\Desktop>mshtml-patcher.py --help
 --------------------------------------------------------------------------------
-mshtml.dll Memory Protection Feature Patcher, v.0.1.6
+mshtml.dll Memory Protection Feature Patcher, v.0.1.7
 (Tested on Windows 7/8 x32/x64, IE9 - IE11 x32 bit versions)
 
 usage: mshtml-patcher.py [-h]
@@ -76,7 +76,7 @@ somewhere else, otherwise script will replace new mshtml.dll with older version.
 ```
 C:\Users\debug\Desktop>mshtml-patcher.py --patch-memset ba
 --------------------------------------------------------------------------------
-mshtml.dll Memory Protection Feature Patcher, v.0.1.6
+mshtml.dll Memory Protection Feature Patcher, v.0.1.7
 (Tested on Windows 7/8 x32/x64, IE9 - IE11 x32 bit versions)
 
 OS Version: Windows 7

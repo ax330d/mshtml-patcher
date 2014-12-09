@@ -1,3 +1,5 @@
+#! python
+# -*- coding: utf-8 -*-
 #
 # mshtml.dll patcher script
 #
@@ -14,8 +16,9 @@
 # v 0.1.4   16-10-2014
 # v 0.1.5   30-10-2014
 # v 0.1.6   12-11-2014
+# v 0.1.7   09-12-2014
 
-__version__ = '0.1.6'
+__version__ = '0.1.7'
 
 import argparse
 import os
@@ -199,6 +202,12 @@ class MSHTMLPatcher(object):
         patterns[9][md5hash].P00 = "\x6a\x00\x57\xe8\x35\x19\x95\xff"
         patterns[9][md5hash].P02 = "\x6a\x02\xeb\x06\x8b\x45\x10\x50"
         patterns[9][md5hash].P03 = "\x6a\x03\x56\xe8\x30\x6c\x62\x00"
+        # IE9, update of 09-12-2014
+        md5hash = '91f488c0ed1d8b1fdc112f95a4965cc6'
+        patterns[9][md5hash] = AttributeDict()
+        patterns[9][md5hash].P00 = "\x6a\x00\x57\xe8\x5d\x0e\x95\xff"
+        patterns[9][md5hash].P02 = "\x6a\x02\xeb\x06\x8b\x45\x10\x50"
+        patterns[9][md5hash].P03 = "\x6a\x03\x56\xe8\xa1\x7a\x62\x00"
 
         # Patterns for IE10
         patterns[10] = {}
@@ -225,6 +234,12 @@ class MSHTMLPatcher(object):
         patterns[10][md5hash].P00 = "\x6a\x00\x56\xe8\xa9\xe7\x4c\xff"
         patterns[10][md5hash].P02 = "\x6a\x02\x58\xe8\xe1\xde\x56\x00"
         patterns[10][md5hash].P03 = "\x6a\x03\xeb\x05\xff\x75\x10\x6a"
+        # IE10, update of 09-12-2014
+        md5hash = '50f36baedf56ccc4367c975451479211'
+        patterns[10][md5hash] = AttributeDict()
+        patterns[10][md5hash].P00 = "\x6a\x00\x56\xe8\xd9\x13\x4d\xff"
+        patterns[10][md5hash].P02 = "\x6a\x02\x58\xe8\xf3\xc8\x56\x00"
+        patterns[10][md5hash].P03 = "\x6a\x03\xeb\x05\xff\x75\x10\x6a"
 
         # Patterns for IE11
         patterns[11] = {}
@@ -250,6 +265,13 @@ class MSHTMLPatcher(object):
         patterns[11][md5hash].P03 = "\xba\x03\x00\x00\x00\xff\x75\x10"
         # IE11, update of 11-11-2014
         md5hash = '93074c4fa92a8399404d032f6af72c1b'
+        patterns[11][md5hash] = AttributeDict()
+        patterns[11][md5hash].P00 = "\x6a\x00\x57\xe8\x19\x8c\xfd\xff" \
+                                    "\x83\xc4\x0c\x5e\x5f\x5b\x8b\xe5"
+        patterns[11][md5hash].P02 = "\xba\x02\x00\x00\x00\xff\x75\x10"
+        patterns[11][md5hash].P03 = "\xba\x03\x00\x00\x00\xe9\xd8\xfe"
+        # IE11, update of 09-12-2014
+        md5hash = '220505b0b3e96c857dd01729af0cd369'
         patterns[11][md5hash] = AttributeDict()
         patterns[11][md5hash].P00 = "\x6a\x00\x57\xe8\x19\x8c\xfd\xff" \
                                     "\x83\xc4\x0c\x5e\x5f\x5b\x8b\xe5"
