@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 """
-
 mshtml.dll patcher script.
 
 Patches mshtml.dll to disable Protected Memory mitigation, or use some pattern
@@ -10,12 +9,7 @@ for memset after memory was freed.
 
 Use this script only for debugging purposes.
 
-By @ax330d.
-
 """
-
-
-__version__ = '0.2.0'
 
 import argparse
 import os
@@ -24,6 +18,9 @@ import struct
 import shutil
 import platform
 import hashlib
+
+__version__ = '0.2.1'
+__author__ = 'Arthur Gerkis'
 
 
 def md5(path):
@@ -368,6 +365,12 @@ class MSHTMLPatcher(object):
                 'P00': "\x6a\x00\x57\xe8\x05\x0a\x95\xff",
                 'P02': "\x6a\x02\xeb\x06\x8b\x45\x10\x50",
                 'P03': "\x6a\x03\x56\xe8\x7c\x7e\x62\x00"
+            },
+            # IE9, update of 11-03-2015
+            'e118f7cfd80c1346bdc37b64e1270dd6': {
+                'P00': "\x6a\x00\x57\xe8\x65\xfb\x94\xff",
+                'P02': "\x6a\x02\xeb\x06\x8b\x45\x10\x50",
+                'P03': "\x6a\x03\x56\xe8\x1c\x8d\x62\x00"
             }
         }
 
@@ -407,7 +410,13 @@ class MSHTMLPatcher(object):
                 'P00': "\x6a\x00\x56\xe8\xf1\xdb\x4c\xff",
                 'P02': "\x6a\x02\x58\xe8\xa8\xed\x56\x00",
                 'P03': "\x6a\x03\xeb\x05\xff\x75\x10\x6a"
-            }
+            },
+            # IE10, update of 11-03-2015
+            '836e4983088dd3723f0b3d9baba63e97': {
+                'P00': "\x6a\x00\x56\xe8\x89\x50\x4c\xff",
+                'P02': "\x6a\x02\x58\xe8\xfc\x80\x57\x00",
+                'P03': "\x6a\x03\xeb\x05\xff\x75\x10\x6a"
+            },
         }
 
         # Patterns for IE11
@@ -449,6 +458,13 @@ class MSHTMLPatcher(object):
             # IE11, update of 10-12-2014
             '61c74d794c14e9fc94d93f5f0f72a3f9': {
                 'P00': "\x6a\x00\x57\xe8\x19\x8c\xfd\xff"
+                       "\x83\xc4\x0c\x5e\x5f\x5b\x8b\xe5",
+                'P02': "\xba\x02\x00\x00\x00\xff\x75\x10",
+                'P03': "\xba\x03\x00\x00\x00\xe9\xd8\xfe"
+            },
+            # IE11, update of 10-12-2014
+            '95cb6079b3e62d4301958023c2070a48': {
+                'P00': "\x6a\x00\x57\xe8\xb5\x86\xfd\xff"
                        "\x83\xc4\x0c\x5e\x5f\x5b\x8b\xe5",
                 'P02': "\xba\x02\x00\x00\x00\xff\x75\x10",
                 'P03': "\xba\x03\x00\x00\x00\xe9\xd8\xfe"
