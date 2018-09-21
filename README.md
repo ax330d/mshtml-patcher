@@ -1,6 +1,7 @@
 Patch Script For mshtml.dll  
 ---------------------------
 
+This software is discontinued and not maintained anymore.
 
 ### What for?
 
@@ -47,24 +48,24 @@ This script will automatically find Internet Explorer version and path to
 mshtml.dll to patch. You can also specify them explicitly in arguments. Before 
 patching, script creates file backup named "original-mshtml.dll". 
 
-#####--patch-memset XX
+##### --patch-memset XX
 
 Will patch memset arguments in MemoryProtection::CMemoryProtector::ProtectedFree 
 so you can see some recognizable pattern instead of zeros. In place of XX put 
 some hex value.
 
 
-#####--patch-disable
+##### --patch-disable
 
 Disables Memory Protection mitigation. 
 
 
-#####--print-info
+##### --print-info
 
 Print information about files.
 
 
-#####--restore
+##### --restore
 
 Restore original (previously saved) dll file.
 
